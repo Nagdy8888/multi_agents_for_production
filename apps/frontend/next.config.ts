@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone", // for Docker: copies minimal server + static assets
+  output: process.env.VERCEL ? undefined : "standalone",
   images: {
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/uploads/**" },
