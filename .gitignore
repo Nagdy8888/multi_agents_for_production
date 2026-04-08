@@ -1,0 +1,49 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+notes.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+ENV/
+.pytest_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# IDE and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Uploads (keep .gitkeep)
+apps/agents/uploads/*
+!apps/agents/uploads/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+.coverage
+htmlcov/
+
+# LangGraph CLI local dev cache
+apps/agents/.langgraph_api/
+
+# Local archives / old trees (not part of monorepo)
+PO Parsing AI Agent/
+image-analysis-agent/
+Legacy/

@@ -1,0 +1,34 @@
+---
+description: Google Apps Script integration rules and callback protocol
+globs: gas-scripts/**/*.gs,apps/agents/src/api/main.py,apps/agents/src/services/gas_callback/**
+alwaysApply: false
+---
+
+# GAS Integration
+
+## Architecture
+
+- `gas-scripts/` is a **Git submodule** (separate repo).
+- Only **HTTP** between GAS and Python (webhooks + callbacks).
+
+## GAS → Python
+
+- PO: `POST /webhook/email` + header `x-webhook-secret: WEBHOOK_SECRET`
+- Images: `POST /webhook/drive-image` + same header; JSON body includes `image_base64`, `filename`, `drive_file_id`
+
+## Python → GAS
+
+- `GASCallbackClient` POSTs to `GAS_WEBAPP_URL` with JSON body containing:
+  - `secret` = `GAS_WEBAPP_SECRET`
+  - `type` = `po_result` (default in router if omitted) or `image_result`
+
+## Adding an agent
+
+1. New `type` value, e.g. `"foo_result"`
+2. Handler in `shared/WebApp.gs`
+3. Route branch in `doPost`
+
+## Avoid
+
+- Importing GAS from Python or vice versa
+- Omitting `type` for non-PO callbacks (image **must** send `image_result`)

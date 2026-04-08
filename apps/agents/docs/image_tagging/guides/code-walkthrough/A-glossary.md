@@ -1,0 +1,51 @@
+# Appendix A — Glossary
+
+Alphabetical list of terms used in the code walkthrough labs. Use this when you encounter an unfamiliar term.
+
+- **aggregator** — The graph node that builds the final TagRecord from validated_tags and sets processing_status. Lab 10.
+- **ainvoke** — Async method on the compiled LangGraph graph; runs the pipeline with the given initial state and returns the final state.
+- **API** — Application Programming Interface; here, the set of HTTP endpoints the backend exposes (e.g. /api/analyze-image, /api/search-images).
+- **async/await** — Python or JavaScript syntax for non-blocking I/O; await pauses until a result is ready without blocking the thread.
+- **base64** — Encoding that turns binary data into a string of ASCII characters; used to send image bytes in JSON and in data URIs.
+- **BATCH_STORAGE** — In-memory dict on the server keyed by batch_id; holds total, completed, results list, and status for bulk uploads. Lab 16.
+- **build_search_index** — Function that flattens tag_record (all tag values) into a sorted list of strings stored in the search_index column for @> queries. Lab 18.
+- **component** — In React, a function that returns JSX (UI); can receive props and hold state. E.g. ImageUploader, DashboardResult.
+- **compile** — LangGraph step that turns a StateGraph (nodes + edges) into a runnable graph object with ainvoke. Lab 03.
+- **confidence filter** — Graph node that applies per-category thresholds to validated_tags and moves low-confidence tags to flagged_tags; sets needs_review. Lab 09.
+- **containment operator (@>)** — PostgreSQL operator: search_index @> array means the row’s array contains every element in the given array. Used for AND search across categories. Lab 14.
+- **data URI** — URL scheme that embeds data inline, e.g. data:image/jpeg;base64,... Used to send the image to the vision API. Lab 05.
+- **endpoint** — One URL + HTTP method (e.g. POST /api/analyze-image) that the server handles.
+- **fan-out** — From one node, branching to multiple next nodes (e.g. vision → 8 taggers). Done with conditional_edges and Send. Lab 06.
+- **FlaggedTag** — Pydantic model: a tag that failed validation or was dropped by confidence filter; has category, value, confidence, reason (e.g. low_confidence, invalid_taxonomy_value). Lab 08.
+- **FormData** — Web API object for building multipart/form-data request bodies; used when uploading files. Lab 01.
+- **get_flat_values** — Taxonomy helper: returns a flat list of allowed values for a category (for hierarchical categories, all children). Lab 07, 19.
+- **get_parent_for_child** — Taxonomy helper: for hierarchical categories, returns the parent key for a given child value; used by validator and aggregator. Lab 08, 19.
+- **GIN index** — PostgreSQL index type for containment and JSONB queries; used on search_index and tag_record. Lab 18.
+- **HierarchicalTag** — Pydantic model: { parent, child }; used for objects, dominant_colors, product_type in TagRecord. Lab 10.
+- **hook** — In React, a function like useState or useEffect that lets components use state and side effects. Lab 01.
+- **HTTPException** — FastAPI exception that becomes an HTTP response with a status code and JSON body (e.g. 400, 404, 500). Lab 02.
+- **ImageTaggingState** — TypedDict defining the graph state shape; includes partial_tags with a reducer. Lab 03, 05.
+- **initial_state** — The dict passed to graph.ainvoke by the server; contains image_id, image_url, image_base64, partial_tags. Lab 02.
+- **JSONB** — PostgreSQL type for JSON data; used for tag_record column. Lab 18.
+- **LangGraph** — Library for building stateful graphs of nodes and edges; StateGraph, add_node, add_edge, add_conditional_edges, compile, ainvoke. Lab 03.
+- **middleware** — Code that runs for every request/response (e.g. CORS). Lab 02.
+- **node** — In LangGraph, one step in the graph; a function that receives state and returns a dict of updates. Lab 03.
+- **partial_tags** — State key holding a list of TagResults (one per category); filled by the 8 taggers and merged with a reducer. Lab 06, 07.
+- **PIL / Pillow** — Python imaging library; used in the preprocessor to open, resize, and save images. Lab 04.
+- **props** — Inputs passed to a React component by its parent (e.g. onAnalyze, data). Lab 01.
+- **Pydantic** — Python library for data validation and serialization; TagResult, ValidatedTag, TagRecord, etc. are Pydantic models. Lab 07, 08.
+- **reducer** — In LangGraph state, a rule for merging updates (e.g. operator.add for partial_tags) instead of overwriting. Lab 03, 06.
+- **Send** — LangGraph type: represents “run this node with this state”; used in fan_out_to_taggers to schedule all 8 taggers. Lab 06.
+- **StateGraph** — LangGraph builder: StateGraph(StateType) then add_node, add_edge, add_conditional_edges, compile. Lab 03.
+- **state** — In React, data owned by a component that triggers re-renders when updated (e.g. analysisResult, filters). In the graph, the dict passed between nodes. Lab 01, 03.
+- **tag_record** — The final TagRecord from the aggregator; stored in state and in the database; has season, theme, objects, dominant_colors, design_elements, occasion, mood, product_type, needs_review, processed_at. Lab 10, 11.
+- **TagResult** — Pydantic model: category, tags (list of strings), confidence_scores (dict). Returned by each tagger in partial_tags. Lab 07.
+- **taxonomy** — The single source of allowed tag values per category (flat list or hierarchical dict). taxonomy.py. Lab 07, 19.
+- **TypedDict** — Python type that describes the shape of a dict; ImageTaggingState is a TypedDict. Lab 03.
+- **UploadFile** — FastAPI type for an uploaded file in a multipart request; has .filename, .content_type, .read(). Lab 02.
+- **useMemo** — React hook that memoizes a computed value; recomputes only when dependencies change. Lab 12.
+- **useState** — React hook that returns [value, setter] for component state. Lab 01.
+- **ValidatedTag** — Pydantic model: value, confidence, optional parent (for hierarchical); produced by the validator. Lab 08.
+- **validator** — Graph node that checks every tag in partial_tags against the taxonomy and produces validated_tags and flagged_tags. Lab 08.
+- **vision_description** — The 2–3 sentence description from the vision node; only this (not the image) is passed to the taggers. Lab 05, 07.
+- **vision_raw_tags** — The full JSON from the vision node (visual_description, dominant_mood, visible_subjects, etc.); stored in state and shown in the UI. Lab 05.

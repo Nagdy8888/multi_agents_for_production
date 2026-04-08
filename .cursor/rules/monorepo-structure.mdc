@@ -1,0 +1,25 @@
+---
+description: Explains the monorepo layout, where each component lives
+alwaysApply: true
+---
+
+# Monorepo Structure
+
+This workspace is a multi-agent monorepo with the following layout:
+
+- `apps/agents/` — Python backend (FastAPI + LangGraph). Contains two AI agents and shared services.
+  - `src/po_parser/` — PO Parser agent (email intake, PDF/Excel parsing, Airtable output)
+  - `src/image_tagging/` — Image Tagging agent (GPT-4o vision, Supabase persistence)
+  - `src/services/` — Shared services (openai, supabase, airtable, gas_callback)
+  - `src/api/main.py` — Unified FastAPI entry-point combining BOTH agents' endpoints
+- `apps/frontend/` — Next.js 16 dashboard for image tagging only
+- `gas-scripts/` — Git submodule (separate repo). Google Apps Script triggers and callback handlers. Communicates with Python backend via HTTP webhooks ONLY. No code-level dependency.
+- `.env` — Single environment file at repo root for ALL apps (backend + frontend). GAS uses Script Properties, not .env.
+- `docker-compose.yml` — Orchestrates backend and frontend services
+
+IMPORTANT rules:
+
+- NEVER move or create a second `.env` file. All env vars live in `ROOT/.env`.
+- Treat `gas-scripts/` as its own Git repo (submodule); commit GAS changes inside that directory on its own branch/remote workflow.
+- The Python `PYTHONPATH` root is `apps/agents/`. All absolute imports start with `src.`.
+- The unified API is at `src/api/main.py`. NEVER create separate FastAPI apps for each agent.

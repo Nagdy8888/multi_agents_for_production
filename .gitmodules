@@ -1,0 +1,3 @@
+[submodule "gas-scripts"]
+	path = gas-scripts
+	url = https://github.com/Modern-Intelligence-Solutions/gas-scripts.git

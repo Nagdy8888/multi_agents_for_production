@@ -1,0 +1,9 @@
+{
+  "graphs": {
+    "image_tagging": "./src/image_tagging/image_tagging.py:graph",
+    "po_parser": "./src/po_parser/po_parser.py:graph"
+  },
+  "env": "../../.env",
+  "python_version": "3.11",
+  "dependencies": ["."]
+}

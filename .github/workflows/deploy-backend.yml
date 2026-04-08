@@ -1,0 +1,126 @@
+# ============================================================================
+# CI/CD Pipeline: Deploy Backend to Azure App Service
+#
+# Triggers: On push to main branch, only when backend code changes.
+# What it does:
+#   1. Checks out your code
+#   2. Logs in to Docker Hub
+#   3. Builds and pushes the Docker image
+#   4. Logs in to Azure
+#   5. Deploys the new image to Azure App Service
+#
+# Required GitHub Secrets (see cloud/scripts/04-setup-github-secrets.md):
+#   - AZURE_CREDENTIALS       (Service Principal JSON)
+#   - DOCKERHUB_USERNAME      (your Docker Hub username)
+#   - DOCKERHUB_TOKEN         (Docker Hub access token)
+#   - WEBHOOK_SECRET, GAS_WEBAPP_SECRET, GAS_WEBAPP_URL
+#   - OPENAI_API_KEY
+#   - AIRTABLE_API_KEY, AIRTABLE_BASE_ID
+#   - AIRTABLE_PO_TABLE_ID, AIRTABLE_PO_VIEW_ID (optional)
+#   - AIRTABLE_ITEMS_TABLE_ID, AIRTABLE_ITEMS_VIEW_ID (optional)
+#   - DATABASE_URI
+#   - LANGCHAIN_API_KEY (optional)
+# ============================================================================
+
+name: Deploy Backend to Azure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/agents/**'
+      - '.github/workflows/deploy-backend.yml'
+
+  # Allows you to manually trigger the workflow from the Actions tab
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: multiagent-backend
+  RESOURCE_GROUP: multiagent-rg
+  APP_NAME: multiagent-nagdy
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Step 3: Build and push the Docker image to Docker Hub
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/agents
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+      # Step 4: Log in to Azure
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Step 5: Update the Web App to use the new Docker image
+      - name: Deploy to Azure App Service
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --container-image-name ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      # Step 6: Update environment variables
+      - name: Set app environment variables
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --settings \
+              WEBSITES_PORT=8000 \
+              WEBHOOK_SECRET="${{ secrets.WEBHOOK_SECRET }}" \
+              GAS_WEBAPP_SECRET="${{ secrets.GAS_WEBAPP_SECRET }}" \
+              GAS_WEBAPP_URL="${{ secrets.GAS_WEBAPP_URL }}" \
+              OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+              OPENAI_CLASSIFICATION_MODEL=gpt-4o-mini \
+              OPENAI_EXTRACTION_MODEL=gpt-4o-mini \
+              OPENAI_OCR_MODEL=gpt-4o \
+              OPENAI_MODEL=gpt-4o \
+              OPENAI_MAX_TOKENS=4096 \
+              OPENAI_TEMPERATURE=0 \
+              AIRTABLE_API_KEY="${{ secrets.AIRTABLE_API_KEY }}" \
+              AIRTABLE_BASE_ID="${{ secrets.AIRTABLE_BASE_ID }}" \
+              "AIRTABLE_PO_TABLE=Customer POs" \
+              "AIRTABLE_ITEMS_TABLE=PO Items" \
+              AIRTABLE_PO_TABLE_ID="${{ secrets.AIRTABLE_PO_TABLE_ID }}" \
+              AIRTABLE_PO_VIEW_ID="${{ secrets.AIRTABLE_PO_VIEW_ID }}" \
+              AIRTABLE_ITEMS_TABLE_ID="${{ secrets.AIRTABLE_ITEMS_TABLE_ID }}" \
+              AIRTABLE_ITEMS_VIEW_ID="${{ secrets.AIRTABLE_ITEMS_VIEW_ID }}" \
+              DATABASE_URI="${{ secrets.DATABASE_URI }}" \
+              LANGCHAIN_TRACING_V2=false \
+              LANGCHAIN_PROJECT=multi-agent-platform \
+              LOG_LEVEL=INFO \
+              API_PUBLIC_BASE_URL="https://${{ env.APP_NAME }}.azurewebsites.net" \
+            --output none
+
+      # Step 7: Restart the app to pick up the new image
+      - name: Restart Web App
+        run: |
+          az webapp restart \
+            --name ${{ env.APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
+
+      # Step 8: Print the live URL
+      - name: Show deployment URL
+        run: |
+          echo "Backend deployed successfully!"
+          echo "Live URL: https://${{ env.APP_NAME }}.azurewebsites.net"

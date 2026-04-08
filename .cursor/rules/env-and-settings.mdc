@@ -1,0 +1,32 @@
+---
+description: Environment variable and settings configuration rules
+globs: "**/.env*"
+alwaysApply: false
+---
+
+# Environment Variables and Settings
+
+## Single .env file
+
+- ONE `.env` at **repo root** (`ROOT/.env`).
+- Docker Compose uses `env_file: .env` for `agents` and `frontend`.
+- Do NOT add `.env` under `apps/agents/` or `apps/frontend/` for secrets.
+- Commit `.env.example` only; never commit `.env`.
+
+## Python
+
+- Use `load_dotenv()` with **no path** (walks cwd); run from `ROOT/` or rely on Compose-injected env.
+- Do NOT use `Path(__file__).parent...` chains to find `.env`.
+- Service `settings.py` files use `pydantic_settings`; env vars are read from the process environment.
+
+## Frontend
+
+- `NEXT_PUBLIC_*` vars are build-time; root Compose passes `NEXT_PUBLIC_API_URL` from `.env`.
+
+## GAS
+
+- Secrets and URLs live in **Script Properties**, not `.env`.
+
+## langgraph.json
+
+- `"env": "../../.env"` relative to `apps/agents/langgraph.json`.

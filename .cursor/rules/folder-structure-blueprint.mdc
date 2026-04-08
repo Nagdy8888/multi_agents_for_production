@@ -1,0 +1,26 @@
+---
+description: Canonical folder structure blueprint for new agents and services
+globs: apps/agents/src/**
+alwaysApply: false
+---
+
+# LangGraph multi-agent folder blueprint
+
+When adding agents or services, mirror `PO Parsing AI Agent/Description/FOLDER_STRUCTURE.md` (also copied to `apps/agents/docs/shared/FOLDER_STRUCTURE.md`).
+
+## New agent under `apps/agents/src/<agent>/`
+
+- `<agent>.py` — exports `graph`
+- `graph_builder.py`, `configuration.py`, `settings.py`
+- `nodes/`, `prompts/`, `schemas/`, `tools/` (optional)
+
+Register in `apps/agents/langgraph.json` and add routes lazily in `src/api/main.py`.
+
+## New shared service under `apps/agents/src/services/<name>/`
+
+- `__init__.py`, `client.py`, `settings.py`
+- Add env keys to `ROOT/.env` and `.env.example`
+
+## Rule of thumb
+
+Shared API clients → `services/`. LLM-exposed tools used by one agent → that agent's `tools/`.

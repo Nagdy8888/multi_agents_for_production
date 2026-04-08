@@ -1,0 +1,34 @@
+---
+description: Python import rules for po_parser, image_tagging, and services
+globs: apps/agents/src/**/*.py
+alwaysApply: false
+---
+
+# Import Conventions
+
+The Python path root is `apps/agents/`. All absolute imports start with `src.`.
+
+## po_parser agent (`src/po_parser/`)
+
+- Uses ABSOLUTE imports: `from src.po_parser.schemas.states import ...`, `from src.services.openai import ...`
+- NEVER convert these to relative imports.
+
+## image_tagging agent (`src/image_tagging/`)
+
+- **`image_tagging.py` (LangGraph entry):** same as `po_parser.py` — `from src.image_tagging.graph_builder import build_graph` (Studio loads the file without package context; relative imports fail).
+- **All other modules:** relative imports within the package (`from .nodes import ...`, etc.).
+
+## Shared services (`src/services/`)
+
+- MIX: absolute for cross-package (`from src.services.base import ...`), relative intra-package (`from .settings import ...`).
+
+## Unified API (`src/api/main.py`)
+
+- ALWAYS use absolute imports (`from src.po_parser.po_parser import graph`, `from src.services.supabase import ...`).
+- Lazy-import graphs and heavy clients inside route handlers.
+
+## Avoid
+
+- `sys.path` hacks
+- `from image_tagging...` without `src.`
+- `from backend.src...` (legacy)

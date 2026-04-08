@@ -1,0 +1,5 @@
+**/*.md
+.clasp.json.example
+node_modules/**
+.git/**
+**/.DS_Store

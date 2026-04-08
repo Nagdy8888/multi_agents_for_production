@@ -1,0 +1,14 @@
+"""Runtime configuration (spec section 7)."""
+from .settings import OPENAI_MODEL
+
+CONFIDENCE_THRESHOLD = 0.65
+NEEDS_REVIEW_THRESHOLD = 3
+MAX_COLORS = 5
+MAX_OBJECTS = 10
+VISION_MODEL = OPENAI_MODEL
+TAGGER_MODEL = OPENAI_MODEL
+
+CATEGORY_CONFIDENCE_OVERRIDES = {
+    "product_type": 0.80,
+    "season": 0.60,
+}
